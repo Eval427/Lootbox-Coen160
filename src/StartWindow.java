@@ -8,11 +8,12 @@ public class StartWindow extends JFrame implements ActionListener {
 	//Class Declarations
 	JTextField firstTF, middleTF, lastTF, fullTF;
 	JButton startButton, loadButton;
+	boolean gameStart = false;
 	
 	//Constructor
 	public StartWindow() {
 		super("Lootbox Game");
-		setSize(600, 300);
+		setSize(960, 540);
 		setLocationRelativeTo(null);
 		Container container = getContentPane();
 		container.setLayout(new BorderLayout());
@@ -34,22 +35,42 @@ public class StartWindow extends JFrame implements ActionListener {
 		container.add(titlePanel, BorderLayout.NORTH);
 		container.add(startPanel, BorderLayout.CENTER);
 		container.add(loadPanel, BorderLayout.SOUTH);
-		
-		setVisible(true);
 	}
 
 		public void actionPerformed(ActionEvent e) {
 			
 			if (e.getSource() == startButton) {
-				System.out.println("start pressed");
+				gameStart = true;
 			}
 			
 			if (e.getSource() == loadButton) {
 				System.out.println("load pressed");
 			}
 	}
+
+	/**
+	 * Shows the start window
+	 */
+	public void showWindow() {
+		setVisible(true);
+	}
+
+	/**
+	 * Hides the start window
+	 */
+	public void hideWindow() {
+		setVisible(false);
+	}
+
+	/**
+	 * Bool to detect when transition to game screen should take place
+	 * @return if "Start" or "Load" is pressed
+	 */
+	public boolean isGameStart() {
+		return gameStart;
+	}
 	//Main Program that starts Execution
-	public static void main(String args[]) {
+	public static void main(String[] args) {
 		StartWindow test = new StartWindow();
 		test.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
