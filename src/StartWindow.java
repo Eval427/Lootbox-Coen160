@@ -69,6 +69,7 @@ public class StartWindow extends JFrame implements ActionListener {
 	public boolean isGameStart() {
 		return gameStart;
 	}
+
 	//Main Program that starts Execution
 	public static void main(String[] args) {
 		StartWindow test = new StartWindow();
