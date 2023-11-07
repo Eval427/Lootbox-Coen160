@@ -114,6 +114,7 @@ public class GameWindow extends JFrame implements ActionListener {
 
     public void actionPerformed(ActionEvent e) {
         updateItemAmount("Coins", 10);
+        System.out.println(e.getActionCommand());
     }
 
     /**
