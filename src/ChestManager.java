@@ -1,38 +1,13 @@
+import java.util.Arrays;
 import java.util.Objects;
 import java.awt.Color;
 import java.util.Random;
 
-// Stores basic information about every item in a chest
-class CustomItem {
-    int chance, increment;
-    String name, icon, rewardDisplay;
-    Color color;
-
-    public CustomItem(String name, int chance, int increment, String icon, String rewardDisplay, Color color) {
-        this.name = name;
-        this.chance = chance;
-        this.increment = increment;
-        this.icon = icon;
-        this.rewardDisplay = rewardDisplay;
-        this.color = color;
-    }
-
-    public String getName() { return this.name; };
-
-    public int getChance() { return this.chance; }
-
-    public int getIncrement() { return this.increment; }
-
-    public String getRewardDisplay() { return this.rewardDisplay; }
-
-    public String getIcon() { return this.icon; }
-}
-
 // Stores information about a chest's value, its items, and has functionality to generate accurate rewards
 class Chest {
-    int cost, slots, numItems;
-    CustomItem[] items, table;
-    String name;
+    private int cost, slots, numItems;
+    private CustomItem[] items, table;
+    private String name;
 
     /**
      * Creates a new chest
@@ -40,23 +15,17 @@ class Chest {
      * @param cost Cost to open chest
      * @param slots Number of rewards given from each open
      */
-    public Chest(String name, int cost, int slots) {
+    public Chest(String name, int cost, int slots, int value) {
         this.name = name;
         this.cost = cost;
         this.slots = slots;
         this.items = new CustomItem[10];
-
-        // Default items
-        //Small amount of coins
-        addItem("Coins", 20, 10, "@", "Some Coins!", Color.black);
-        //Medium amount of coins
-        addItem("Coins", 15, 25, "@", "-_Extra Coins_-", Color.black);
-        // Large amount of coins - Chest cost dependent
-        addItem("Coins", 10*cost, 50, "@", "!!! Tons of Coins !!!", Color.orange);
+        this.numItems = 0;
     }
 
-    public void addItem(String name, int chance, int increment, String icon, String display, Color color) {
-        items[numItems++] = new CustomItem(name, chance, increment, icon, display, color);
+    public void addItem(CustomItem item) {
+        // I really, really doubt there will be more than 10 items. No need to reallocate the array
+        items[numItems++] = item;
     }
 
     public void generateTable() {
@@ -64,7 +33,9 @@ class Chest {
 
         // Calculate length for table array
         for (CustomItem c : items) {
-            tableLen += c.getChance();
+            if (c != null) {
+                tableLen += c.getChance();
+            }
         }
 
         // Use # insertions equal to chance to create drop chances
@@ -72,8 +43,10 @@ class Chest {
         int i;
         int index = 0;
         for (CustomItem c : items) {
-            for (i=0; i < c.getChance(); i++) {
-                table[index++] = c;
+            if (c != null) {
+                for (i = 0; i < c.getChance(); i++) {
+                    table[index++] = c;
+                }
             }
         }
     }
@@ -97,9 +70,10 @@ class Chest {
 
 // Manages an array of chests. This should be interacted with everywhere else
 public class ChestManager {
-    Chest[] chests;
-    Chest mostRecent;
-    int numChests;
+    private Chest[] chests;
+    private Chest mostRecent;
+    private int numChests, numItems;
+    private CustomItem[] allItems;
 
     /**
      * Manages the array of chests
@@ -108,6 +82,8 @@ public class ChestManager {
         chests = new Chest[10];
         numChests = 0;
         mostRecent = null;
+        allItems = new CustomItem[10];
+        numItems = 0;
     }
 
     /**
@@ -115,8 +91,9 @@ public class ChestManager {
      * @param name Chest name
      * @param cost Chest cost
      * @param slots Number of rewards at one time
+     * @param value Multiplier for rare items
      */
-    public void makeChest(String name, int cost, int slots) {
+    public void makeChest(String name, int cost, int slots, int value) {
         // Create larger array if array becomes full
         if (numChests == chests.length) {
             Chest[] temp = new Chest[chests.length*2];
@@ -128,21 +105,59 @@ public class ChestManager {
             chests = temp;
         }
 
-        Chest newChest = new Chest(name, cost, slots);
+        Chest newChest = new Chest(name, cost, slots, value);
         chests[numChests++] = newChest;
         mostRecent = newChest;
+
+        // Add default items and save to global item array
+        CustomItem sCoins = new CustomItem("Coins", 20, 10, "@", "Some Coins!", Color.black);
+        newChest.addItem(sCoins);
+        addItemToList(sCoins);
+        //Medium amount of coins
+        CustomItem mCoins = new CustomItem("Coins", 15, 25, "@", "-!Extra Coins!-", Color.black);
+        newChest.addItem(mCoins);
+        addItemToList(mCoins);
+        // Large amount of coins - Chest cost dependent
+        CustomItem lCoins = new CustomItem("Coins", 10*value, 50, "@", "!!! Tons of Coins !!!", Color.blue);
+        newChest.addItem(lCoins);
+        addItemToList(lCoins);
+        // Weird shard - Chest cost dependent
+        CustomItem wShard = new CustomItem("Weird Shard", 3*value, 1, "%", "??? A Weird Shard ???", Color.cyan);
+        newChest.addItem(wShard);
+        addItemToList(wShard);
+        // Golden shard - Chest cost dependent
+        CustomItem gShard = new CustomItem("Golden Shard", 2*value, 1, "$", "~$ Golden Shard $~", Color.orange);
+        newChest.addItem(gShard);
+        addItemToList(gShard);
+    }
+
+    private void addItemToList(CustomItem item) {
+        boolean add = true;
+        for (int i=0; i < numItems; i++) {
+            if (allItems[i].getName() == item.getName()) {
+                add = false;
+                break;
+            }
+        }
+
+        if (add) allItems[numItems++] = item;
     }
 
     /**
-     * Creates the label for any UI button for a given chest
-     * @param chestName Chest name
-     * @return Generated label
+     * Returns array of button strings for creation of the UI
+     * @return Generated label array
      */
-    public String getButtonString(String chestName) {
-        Chest c = getChestByName(chestName);
+    public String[] getButtonStrings() {
+        String[] result = new String[numChests];
+        int i = 0;
 
-        assert c != null;
-        return String.format("%s\n%d Coins", c.getName(), c.getCost());
+        for (Chest c : chests) {
+            if (c != null) {
+                result[i++] = String.format("<html>%s<br/>%s</html>", c.getName(), c.getCost() > 0 ? (c.getCost() + " Coins") : "Free");
+            }
+        }
+
+        return result;
     }
 
     /**
@@ -171,7 +186,10 @@ public class ChestManager {
     public void addItemToChest(String chest, String name, int chance, int increment, String icon, String rewardDisplay, Color color) {
         Chest c = getChestByName(chest);
         assert c != null;
-        c.addItem(name, chance, increment, icon, rewardDisplay, color);
+
+        CustomItem newItem = new CustomItem(name, chance, increment, icon, rewardDisplay, color);
+        c.addItem(newItem);
+        allItems[numItems++] = newItem;
     }
 
     /**
@@ -185,7 +203,10 @@ public class ChestManager {
      */
     public void addItemToRecent(String name, int chance, int increment, String icon, String rewardDisplay, Color color) {
         assert mostRecent != null;
-        mostRecent.addItem(name, chance, increment, icon, rewardDisplay, color);
+
+        CustomItem newItem = new CustomItem(name, chance, increment, icon, rewardDisplay, color);
+        mostRecent.addItem(newItem);
+        allItems[numItems++] = newItem;
     }
 
     /**
@@ -193,17 +214,20 @@ public class ChestManager {
      * @param buttonString String generated by .getActionCommand()
      * @return Reward text array
      */
-    public String[] openChest(String buttonString) {
+    public CustomItem[] openChest(String buttonString) {
         Chest c = getChestByName(buttonString.split("\n")[0]);
         assert c != null;
-        String[] rewards = new String[c.slots];
 
         c.generateTable();
-        int i = 0;
-        for (CustomItem item : c.createRewards()) {
-            rewards[i++] = item.getRewardDisplay();
-        }
+        return c.createRewards();
+    }
 
-        return rewards;
+    public int getNumChests() { return this.numChests; }
+
+    public CustomItem[] getAllItems() { return this.allItems; }
+    public int getCost(String chestName) {
+        Chest c = getChestByName(chestName);
+        assert c != null;
+        return c.getCost();
     }
 }
