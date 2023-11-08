@@ -139,7 +139,6 @@ public class ChestManager {
                 break;
             }
         }
-
         if (add) allItems[numItems++] = item;
     }
 
@@ -189,7 +188,7 @@ public class ChestManager {
 
         CustomItem newItem = new CustomItem(name, chance, increment, icon, rewardDisplay, color);
         c.addItem(newItem);
-        allItems[numItems++] = newItem;
+        addItemToList(newItem);
     }
 
     /**
@@ -206,7 +205,8 @@ public class ChestManager {
 
         CustomItem newItem = new CustomItem(name, chance, increment, icon, rewardDisplay, color);
         mostRecent.addItem(newItem);
-        allItems[numItems++] = newItem;
+        addItemToList(newItem);
+        System.out.println(newItem.getName());
     }
 
     /**

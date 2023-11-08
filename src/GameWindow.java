@@ -15,7 +15,7 @@ public class GameWindow extends JFrame implements ActionListener {
 
     // List of items on top
 
-    public GameWindow(int numChests) {
+    public GameWindow() {
         super("Lootbox Simulator");
         // Initialize the player
         player = new PlayerStats();
@@ -32,19 +32,19 @@ public class GameWindow extends JFrame implements ActionListener {
         chests.makeChest("Diamond", 150, 4, 3);
         // Emerald chest
         chests.makeChest("Emerald", 450, 5, 4);
-        chests.addItemToRecent("Chaos Shard", 1, 1, "(*)", "*^\\ CHAOS /^*", Color.magenta);
-        chests.addItemToRecent("Emerald Shard", 20, 1, "(%)", "~~ Emerald Shard ~~", Color.green);
+        chests.addItemToRecent("Emerald Shard", 20, 1, "%", "~~ Emerald Shard ~~", Color.green);
+        chests.addItemToRecent("Chaos Shard", 1, 1, "*", "*^\\ CHAOS /^*", Color.magenta);
         // Chaos chest
         chests.makeChest("Chaos", 1000, 7, 6);
-        chests.addItemToRecent("Chaos Shard", 10, 1, "(*)", "*^\\ CHAOS /^*", Color.magenta);
-        chests.addItemToRecent("???", 5, 1337, "?", "Wait a minute... why is this here?", Color.red);
+        chests.addItemToRecent("Chaos Shard", 10, 1, "*", "*^\\ CHAOS /^*", Color.magenta);
+        chests.addItemToRecent("???", 5, 1, "?", "Wait a minute... why is this here?", Color.red);
 
         // Get JFrame container
         Container container = getContentPane();
         container.setLayout(new BorderLayout());
 
         // Initialize chest selection buttons
-        JPanel chestSelection = new JPanel(new GridLayout(numChests, 1, 0, 5));
+        JPanel chestSelection = new JPanel(new GridLayout(chests.getNumChests(), 1, 0, 5));
         chestSelection.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         chestButtons = new JButton[chests.getNumChests()];
@@ -169,7 +169,7 @@ public class GameWindow extends JFrame implements ActionListener {
     public static void main(String[] args) {
         // 1. initialize chests
         // 2. create game window
-        GameWindow game = new GameWindow(10);
+        GameWindow game = new GameWindow();
         game.showWindow();
     }
 }
