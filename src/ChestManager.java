@@ -225,6 +225,7 @@ public class ChestManager {
     public int getNumChests() { return this.numChests; }
 
     public CustomItem[] getAllItems() { return this.allItems; }
+
     public int getCost(String chestName) {
         Chest c = getChestByName(chestName);
         assert c != null;

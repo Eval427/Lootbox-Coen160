@@ -134,7 +134,7 @@ public class GameWindow extends JFrame implements ActionListener {
         String toOpen = e.getActionCommand().split("<html>")[1].split("<br/>")[0];
         if (chests.getCost(toOpen) > player.amountOf("Coins")) {
             // TODO: Update UI to account for this
-            System.out.println("Can't affort that chest!");
+            System.out.println("Can't afford that chest!");
             return;
         }
 
@@ -155,15 +155,6 @@ public class GameWindow extends JFrame implements ActionListener {
 
         // Update display
 
-    }
-
-    /**
-     * Automatically updates the item count text on the top of the UI
-     * Call after any chest opening
-     */
-    public void updateItems() {
-        // TODO: implement this lol
-        System.out.println("Implement me");
     }
 
     public static void main(String[] args) {
