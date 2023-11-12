@@ -24,5 +24,6 @@ public class CustomItem {
     public String getRewardDisplay() { return this.rewardDisplay; }
 
     public String getIcon() { return this.icon; }
+
     public Color getColor() { return this.color; }
 }

@@ -15,7 +15,6 @@ public class GameWindow extends JFrame implements ActionListener {
     private final JLabel[] chestDisplay, rewardTrackers, itemTrackers;
     private final JPanel rewardDisplay, bottomPanel;
     private final JLabel openLore;
-    private final boolean fastAnimation = false;
     private String toOpen;
     private final JButton upgradeButton;
     private final Upgrade[] upgrades;
@@ -52,7 +51,7 @@ public class GameWindow extends JFrame implements ActionListener {
         container.setLayout(new BorderLayout());
 
         // Initialize chest selection buttons
-        JPanel chestSelection = new JPanel(new GridLayout(chests.getNumChests() + 2,1, 0, 5));
+        JPanel chestSelection = new JPanel(new GridLayout(chests.getNumChests() + 2, 1, 0, 5));
         chestSelection.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         chestButtons = new JButton[chests.getNumChests()];
