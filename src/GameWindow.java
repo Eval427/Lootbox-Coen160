@@ -145,7 +145,7 @@ public class GameWindow extends JFrame implements ActionListener {
         upgrades[0] = new Upgrade("Background", cost) {
             @Override
             public void upgradeAction() {
-                container.setBackground(Color.blue);
+                chestSelection.setBackground(Color.blue);
             }
         };
 
