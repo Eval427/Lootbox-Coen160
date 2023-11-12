@@ -8,6 +8,7 @@ class Chest {
     private int cost, slots, numItems;
     private CustomItem[] items, table;
     private String name;
+    private Color color;
 
     /**
      * Creates a new chest
@@ -15,12 +16,13 @@ class Chest {
      * @param cost Cost to open chest
      * @param slots Number of rewards given from each open
      */
-    public Chest(String name, int cost, int slots, int value) {
+    public Chest(String name, int cost, int slots, int value, Color color) {
         this.name = name;
         this.cost = cost;
         this.slots = slots;
         this.items = new CustomItem[10];
         this.numItems = 0;
+        this.color = color;
     }
 
     public void addItem(CustomItem item) {
@@ -66,6 +68,8 @@ class Chest {
     public int getCost() { return this.cost; }
 
     public int getSlots() { return this.slots; }
+
+    public Color getColor() { return this.color; }
 }
 
 // Manages an array of chests. This should be interacted with everywhere else
@@ -93,7 +97,7 @@ public class ChestManager {
      * @param slots Number of rewards at one time
      * @param value Multiplier for rare items
      */
-    public void makeChest(String name, int cost, int slots, int value) {
+    public void makeChest(String name, int cost, int slots, int value, Color color) {
         // Create larger array if array becomes full
         if (numChests == chests.length) {
             Chest[] temp = new Chest[chests.length*2];
@@ -105,7 +109,7 @@ public class ChestManager {
             chests = temp;
         }
 
-        Chest newChest = new Chest(name, cost, slots, value);
+        Chest newChest = new Chest(name, cost, slots, value, color);
         chests[numChests++] = newChest;
         mostRecent = newChest;
 
@@ -122,7 +126,7 @@ public class ChestManager {
         newChest.addItem(lCoins);
         addItemToList(lCoins);
         // Weird shard - Chest cost dependent
-        CustomItem wShard = new CustomItem("Weird Shard", 3*value, 1, "%", "??? A Weird Shard ???", Color.cyan);
+        CustomItem wShard = new CustomItem("Weird Shard", 3*value, 1, "%", "%%% A Weird Shard %%%", Color.cyan);
         newChest.addItem(wShard);
         addItemToList(wShard);
         // Golden shard - Chest cost dependent
@@ -206,7 +210,6 @@ public class ChestManager {
         CustomItem newItem = new CustomItem(name, chance, increment, icon, rewardDisplay, color);
         mostRecent.addItem(newItem);
         addItemToList(newItem);
-        System.out.println(newItem.getName());
     }
 
     /**
@@ -230,5 +233,102 @@ public class ChestManager {
         Chest c = getChestByName(chestName);
         assert c != null;
         return c.getCost();
+    }
+
+    public Color getColor(String chestName) {
+        Chest c = getChestByName(chestName);
+        assert c!= null;
+        return c.getColor();
+    }
+
+    public CustomItem getItemByIcon(String icon) {
+        for (CustomItem i : allItems) {
+            if (Objects.equals(i.getIcon(), icon)) {
+                return i;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The massive ascii chest that will be used
+     * @return ascii art
+     */
+    public String[] closedDisplayString() {
+        return new String[]{
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▓▓▓▓▓▓▓▓▓▓░░░░▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░▓▓\n",
+                "▓▓░░▒▒▒▒▒▒░░▒▒▓▓░░░░▓▓▒▒░░▒▒▒▒▒▒▒▒░░▓▓\n",
+                "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓\n",
+                "▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▓▓\n",
+                "▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░▓▓\n",
+                "▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▓▓\n",
+                "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓\n"
+        };
+    }
+
+    public String[] openedDisplayString() {
+        return new String[] {
+                "",
+                "",
+                "",
+                "",
+                "▓▓▓▓            .\n",
+                "▒▒▒▒▒▒▒▒▒▒▒▒▒▒░░░░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒░░\n",
+                "▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▓▓\n",
+                "▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▓▓\n",
+                "▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▓▓\n",
+                "▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▓▓\n",
+                "▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▓▓\n",
+                "▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▓▓\n",
+                "▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▓▓\n",
+                "▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▓▓\n",
+                "▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▓▓\n",
+                "▓▓▓▓▓▓▓▓▓▓░░░░░░░░▓▓▓▓░░░░░░▓▓▓▓▓▓▓▓\n",
+                "▓▓▓▓▓▓▓▓▓▓░░░░░░░░▓▓▒▒░░░░░░▓▓▓▓▓▓▓▓\n",
+                "▓▓░░▓▓▓▓░░░░░░░░░░░░░░░░░░░░▓▓▓▓░░▓▓\n",
+                "▓▓░░▓▓░░░░▒▒░░░░░░░░▒▒▒▒░░░░░░▓▓░░▓▓\n",
+                "▓▓░░▓▓░░▒▒▒▒▒▒░░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓\n",
+                "▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▓▓\n",
+                "▓▓░░▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓░░▓▓\n",
+                "▓▓░░▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░▓▓\n",
+                "▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▓▓\n",
+                "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓"};
     }
 }
