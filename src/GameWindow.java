@@ -1,42 +1,50 @@
 // package Project;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.util.Objects;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.LineEvent;
-import javax.sound.sampled.LineListener;
+import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
+import java.util.HashMap;
+import java.util.Random;
+
+import static java.lang.System.exit;
 
 /**
  * Implements the GUI framework for the game menu
  */
 public class GameWindow extends JFrame implements ActionListener {
     // Chest selection buttons
-    private JButton[] chestButtons;
+    private final JButton[] chestButtons;
     private final PlayerStats player;
     private final ChestManager chests;
     private final JLabel[] chestDisplay, rewardTrackers, itemTrackers;
-    private final JPanel rewardDisplay, bottomPanel;
+    private final JPanel rewardDisplay;
     private final JLabel openLore;
     private String toOpen;
     private final JButton upgradeButton;
     private final Upgrade[] upgrades;
     private int upgradeIndex;
     private static Clip backgroundMusic;
+    private final String[] endDialogue = {
+            "Huh?",
+            "The game...",
+            "Where did all of those buttons go?",
+            "I guess it's for the best. I think the upgrade system was broken anyways",
+            "Cheers. You destroyed our hard work.",
+            "Goodbye",
+            "...",
+            "for now..."
+    };
+    private int endLog = 0;
+    private boolean endGame = false;
 
     // List of items on top
 
-    public GameWindow(PlayerStats oldPlayer) {
+    public GameWindow(PlayerStats oldPlayer, boolean cheatMode) {
         super("Lootbox Simulator");
         // Initialize the player
         if (oldPlayer == null) {
@@ -52,15 +60,15 @@ public class GameWindow extends JFrame implements ActionListener {
         // Wooden chest
         chests.makeChest("Wooden", 0, 3, 0, Color.black);
         // Golden chest
-        chests.makeChest("Golden", 50, 3, 1, Color.orange);
+        chests.makeChest("Golden", 100, 3, 1, Color.orange);
         // Diamond chest
-        chests.makeChest("Diamond", 150, 4, 3, Color.cyan);
+        chests.makeChest("Diamond", 250, 4, 3, Color.cyan);
         // Emerald chest
-        chests.makeChest("Emerald", 450, 5, 4, Color.green);
+        chests.makeChest("Emerald", 600, 5, 4, Color.green);
         chests.addItemToRecent("Emerald Shard", 20, 1, "%", "~~ Emerald Shard ~~", Color.green);
         chests.addItemToRecent("Chaos Shard", 1, 1, "*", "*^\\ CHAOS /^*", Color.magenta);
         // Chaos chest
-        chests.makeChest("Chaos", 1000, 7, 6, Color.red);
+        chests.makeChest("Chaos", 1500, 7, 6, Color.red);
         chests.addItemToRecent("Chaos Shard", 10, 1, "*", "*^\\ CHAOS /^*", Color.magenta);
         chests.addItemToRecent("???", 5, 1, "?", "Wait a minute... why is this here?", Color.red);
 
@@ -78,6 +86,7 @@ public class GameWindow extends JFrame implements ActionListener {
             chestButtons[i] = new JButton(chestButtonText[i]);
             chestButtons[i].addActionListener(this);
             chestButtons[i].setPreferredSize(new Dimension(125, 50));
+            chestButtons[i].putClientProperty("name", chestButtonText[i].split("<html>")[1].split("<br/>")[0]);
             chestSelection.add(chestButtons[i]);
         }
         chestSelection.add(new JLabel());
@@ -91,7 +100,9 @@ public class GameWindow extends JFrame implements ActionListener {
         itemPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
         // Add all custom chest items to player tracker
-        player.addItems(chests.getAllItems());
+        if (oldPlayer == null) {
+            player.addItems(chests.getAllItems());
+        }
 
         itemTrackers = new JLabel[10];
         int itemIndex = 0;
@@ -110,6 +121,22 @@ public class GameWindow extends JFrame implements ActionListener {
         itemPanel.add(saveButton);
 
         container.add(itemPanel, BorderLayout.NORTH);
+
+        // Initialize itemTrackers from save
+        if (oldPlayer != null) {
+            for (CustomItem item : chests.getAllItems()) {
+                if (item != null) updateItemDisplay(item);
+            }
+        }
+
+        // Add items from cheatMode
+        if (cheatMode) {
+            for (CustomItem item : chests.getAllItems()) {
+                if (item != null && item.getName().equals("Coins")) player.updateAmount(item.getName(), 100000);
+                if (item != null && !item.getName().equals("Coins")) player.updateAmount(item.getName(), 500);
+                if (item != null) updateItemDisplay(item);
+            }
+        }
 
         // Initialize chest UI
         // chestPanel contains the two panels that contain the chest UI element and the list of rewards that drop
@@ -145,7 +172,7 @@ public class GameWindow extends JFrame implements ActionListener {
         openButton.setPreferredSize(new Dimension(125, 50));
         openButton.addActionListener(this);
         openLore = new JLabel("", SwingConstants.CENTER);
-        bottomPanel = new JPanel(new GridLayout(2, 1, 0, 0));
+        JPanel bottomPanel = new JPanel(new GridLayout(2, 1, 0, 0));
         bottomPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         bottomPanel.add(openLore);
         bottomPanel.add(openButton);
@@ -212,12 +239,13 @@ public class GameWindow extends JFrame implements ActionListener {
         
         // Upgrade 5: Upgrade Wooden Chest
         cost = new HashMap<>();
-        cost.put("%", 2);
+        cost.put("%", 1);
         upgrades[4] = new Upgrade("Wooden Upgrade", cost) {
             @Override
             public void upgradeAction() {
             	ImageIcon newIcon = new ImageIcon("./src/woodenchest.png");
             	chestButtons[0].setIcon(newIcon);
+                chestButtons[0].setText("");
             	openLore.setText("So dramatic for a plain wooden chest...");
             }
         };
@@ -230,49 +258,53 @@ public class GameWindow extends JFrame implements ActionListener {
             public void upgradeAction() {
             	ImageIcon newIcon = new ImageIcon("./src/goldenchest.png");
             	chestButtons[1].setIcon(newIcon);
+                chestButtons[1].setText("");
             	openLore.setText("Now that's a bit better!");
             }
         };
         
         // Upgrade 7: Upgrade Diamond Chest
         cost = new HashMap<>();
-        cost.put("%", 2);
+        cost.put("%", 3);
         upgrades[6] = new Upgrade("Diamond Upgrade", cost) {
             @Override
             public void upgradeAction() {
             	ImageIcon newIcon = new ImageIcon("./src/diamondchest.png");
             	chestButtons[2].setIcon(newIcon);
+                chestButtons[2].setText("");
             	openLore.setText("Diamonds... Shiny!");
             }
         };
         
         // Upgrade 8: Upgrade Emerald Chest
         cost = new HashMap<>();
-        cost.put("%", 2);
+        cost.put("%", 4);
         upgrades[7] = new Upgrade("Emerald Upgrade", cost) {
             @Override
             public void upgradeAction() {
             	ImageIcon newIcon = new ImageIcon("./src/emeraldchest.png");
             	chestButtons[3].setIcon(newIcon);
+                chestButtons[3].setText("");
             	openLore.setText("Follow the Yellow Brick Road!");
             }
         };
         
         // Upgrade 9: Upgrade Chaos Chest
         cost = new HashMap<>();
-        cost.put("%", 2);
+        cost.put("%", 5);
         upgrades[8] = new Upgrade("Chaos Upgrade", cost) {
             @Override
             public void upgradeAction() {
             	ImageIcon newIcon = new ImageIcon("./src/chaoschest.png");
             	chestButtons[4].setIcon(newIcon);
+                chestButtons[4].setText("");
             	openLore.setText("Chaos! Chaos! Chaos!");
             }
         };
         
         // // Upgrade 10: Upgrade  Chest
         cost = new HashMap<>();
-        cost.put("%", 2);
+        cost.put("%", 8);
         upgrades[9] = new Upgrade("UI Upgrade", cost) {
             @Override
             public void upgradeAction() {
@@ -283,7 +315,7 @@ public class GameWindow extends JFrame implements ActionListener {
         
         // Upgrade 11: Change Music
         cost = new HashMap<>();
-        cost.put("%", 2);
+        cost.put("%", 5);
         cost.put("$", 2);
         upgrades[10] = new Upgrade("Change Music", cost) {
             @Override
@@ -295,8 +327,8 @@ public class GameWindow extends JFrame implements ActionListener {
         
         // Downgrade 1: Remove image for Wooden Chest
         cost = new HashMap<>();
-        cost.put("%", 2);
-        cost.put("$", 2);
+        cost.put("%", 6);
+        cost.put("$", 4);
         upgrades[11] = new Upgrade("Upgrade?", cost) {
             @Override
             public void upgradeAction() {
@@ -308,8 +340,8 @@ public class GameWindow extends JFrame implements ActionListener {
         
         // Downgrade 2: Remove Diamond Chest
         cost = new HashMap<>();
-        cost.put("%", 2);
-        cost.put("$", 2);
+        cost.put("%", 7);
+        cost.put("$", 6);
         upgrades[12] = new Upgrade("Remove chest", cost) {
             @Override
             public void upgradeAction() {
@@ -320,8 +352,8 @@ public class GameWindow extends JFrame implements ActionListener {
         
         // Downgrade 3: Change to Comic Sans
         cost = new HashMap<>();
-        cost.put("%", 2);
-        cost.put("$", 2);
+        cost.put("%", 10);
+        cost.put("$", 10);
         upgrades[13] = new Upgrade("Font Change", cost) {
             @Override
             public void upgradeAction() {
@@ -335,8 +367,8 @@ public class GameWindow extends JFrame implements ActionListener {
         
         // Downgrade 4: Neon Colors
         cost = new HashMap<>();
-        cost.put("%", 2);
-        cost.put("$", 2);
+        cost.put("%", 10);
+        cost.put("*", 1);
         upgrades[14] = new Upgrade("Neon Colors", cost) {
             @Override
             public void upgradeAction() {
@@ -352,8 +384,8 @@ public class GameWindow extends JFrame implements ActionListener {
         
         // Downgrade 5: Replace Chest Image
         cost = new HashMap<>();
-        cost.put("%", 2);
-        cost.put("$", 2);
+        cost.put("%", 12);
+        cost.put("$", 10);
         upgrades[15] = new Upgrade("Chest Image", cost) {
             @Override
             public void upgradeAction() {
@@ -366,8 +398,8 @@ public class GameWindow extends JFrame implements ActionListener {
         
         // Downgrade 6: Change Reward Font
         cost = new HashMap<>();
-        cost.put("%", 2);
-        cost.put("$", 2);
+        cost.put("%", 13);
+        cost.put("$", 12);
         upgrades[16] = new Upgrade("Reward Font", cost) {
             @Override
             public void upgradeAction() {
@@ -379,8 +411,8 @@ public class GameWindow extends JFrame implements ActionListener {
         
         // Downgrade 7: Delete Save Button
         cost = new HashMap<>();
-        cost.put("%", 2);
-        cost.put("$", 2);
+        cost.put("$", 10);
+        cost.put("*", 2);
         upgrades[17] = new Upgrade("Point of No Return", cost) {
             @Override
             public void upgradeAction() {
@@ -391,7 +423,7 @@ public class GameWindow extends JFrame implements ActionListener {
         
         // Downgrade 8: Delete Chest Buttons
         cost = new HashMap<>();
-        cost.put("%", 2);
+        cost.put("?", 5);
         upgrades[18] = new Upgrade("Chests no more", cost) {
             @Override
             public void upgradeAction() {
@@ -409,6 +441,14 @@ public class GameWindow extends JFrame implements ActionListener {
         upgrades[19] = new Upgrade("Nothing left.", cost) {
             @Override
             public void upgradeAction() {
+                container.remove(chestSelection);
+                container.remove(itemPanel);
+                container.remove(chestSelection);
+                openButton.setText("Continue");
+                openLore.setText(endDialogue[endLog++]);
+                openLore.setForeground(Color.black);
+                endGame = true;
+                stopBackgroundMusic();
             }
         };
 
@@ -480,8 +520,15 @@ public class GameWindow extends JFrame implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        // Game end events
+        if (e.getActionCommand().equals("Continue") && endGame) {
+            if (endLog == endDialogue.length) exit(420);
+            openLore.setText(endDialogue[endLog++]);
+            return;
+        }
+
         // On save
-        if (e.getActionCommand() == "Save") {
+        if (e.getActionCommand().equals("Save")) {
             try {
                 FileOutputStream fileOut = new FileOutputStream("./src/savedata.txt");
                 ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
@@ -506,7 +553,7 @@ public class GameWindow extends JFrame implements ActionListener {
             chestDisplay[i].setText(chestLabelStrings[i]);
         }
 
-        if (e.getActionCommand() != "Open") {
+        if (!e.getActionCommand().equals("Open") && !endGame) {
             // Upgrade
             if (commandIsUpgrade(e.getActionCommand())) { // Ensure button press is upgrade
                 if (canAffordUpgrade(upgrades[upgradeIndex])) { // Ensure user can afford upgrade
@@ -526,7 +573,8 @@ public class GameWindow extends JFrame implements ActionListener {
             }
 
             // Chest selection
-            toOpen = e.getActionCommand().split("<html>")[1].split("<br/>")[0];
+            JButton source = (JButton) e.getSource();
+            toOpen = (String) source.getClientProperty("name");
             for (JLabel label : chestDisplay) {
                 label.setForeground(chests.getColor(toOpen));
             }
@@ -645,7 +693,7 @@ public class GameWindow extends JFrame implements ActionListener {
     public static void main(String[] args) {
         // 1. initialize chests
         // 2. create game window
-        GameWindow game = new GameWindow(null);
+        GameWindow game = new GameWindow(null, false);
         game.showWindow();
     }
 }

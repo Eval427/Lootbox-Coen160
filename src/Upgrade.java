@@ -3,9 +3,8 @@
 import java.util.HashMap;
 
 public abstract class Upgrade {
-    private HashMap<String, Integer> cost;
-    private boolean alreadyDone;
-    private String name;
+    private final HashMap<String, Integer> cost;
+    private final String name;
 
     /**
      * Creates an upgrade that can then be used to change the UI
@@ -14,7 +13,6 @@ public abstract class Upgrade {
      */
     Upgrade(String name, HashMap<String, Integer> cost) {
         this.cost = cost;
-        this.alreadyDone = false;
         this.name = name;
     }
 
@@ -26,19 +24,11 @@ public abstract class Upgrade {
                 costText = costText + s + " " + cost.get(s);
                 begin = false;
             } else {
-                costText = costText + " - " + s + cost.get(s);
+                costText = costText + " and " + s + cost.get(s);
             }
         }
 
         return String.format("<html>%s<br/>%s", name, costText);
-    }
-
-    public void setDone() {
-        alreadyDone = true;
-    }
-
-    public boolean isDone() {
-        return alreadyDone;
     }
 
     public String getName() {

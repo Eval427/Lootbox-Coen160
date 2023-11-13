@@ -7,10 +7,12 @@ import java.util.Random;
 
 // Stores information about a chest's value, its items, and has functionality to generate accurate rewards
 class Chest {
-    private int cost, slots, numItems;
-    private CustomItem[] items, table;
-    private String name;
-    private Color color;
+    private final int cost, slots;
+    private int numItems;
+    private final CustomItem[] items;
+    private CustomItem[] table;
+    private final String name;
+    private final Color color;
 
     /**
      * Creates a new chest
@@ -79,7 +81,7 @@ public class ChestManager {
     private Chest[] chests;
     private Chest mostRecent;
     private int numChests, numItems;
-    private CustomItem[] allItems;
+    private final CustomItem[] allItems;
 
     /**
      * Manages the array of chests
@@ -140,7 +142,7 @@ public class ChestManager {
     private void addItemToList(CustomItem item) {
         boolean add = true;
         for (int i=0; i < numItems; i++) {
-            if (allItems[i].getName() == item.getName()) {
+            if (Objects.equals(allItems[i].getName(), item.getName())) {
                 add = false;
                 break;
             }

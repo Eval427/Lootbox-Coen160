@@ -3,6 +3,7 @@
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class PlayerStats implements Serializable {
     private Map<CustomItem, Integer> items;
@@ -24,7 +25,7 @@ public class PlayerStats implements Serializable {
     public int amountOf(CustomItem item) {
         for (CustomItem i : items.keySet()) {
             if (i != null) {
-                if (i.getName() == item.getName()) {
+                if (Objects.equals(i.getName(), item.getName())) {
                     return items.get(i);
                 }
             }
@@ -35,7 +36,7 @@ public class PlayerStats implements Serializable {
     public int amountOf(String item) {
         for (CustomItem i : items.keySet()) {
             if (i != null) {
-                if (i.getName() == item) {
+                if (Objects.equals(i.getName(), item)) {
                     return items.get(i);
                 }
             }
@@ -51,7 +52,7 @@ public class PlayerStats implements Serializable {
     public void updateAmount(String item, int increment) {
         for (CustomItem i : items.keySet()) {
             if (i != null) {
-                if (i.getName() == item) {
+                if (Objects.equals(i.getName(), item)) {
                     items.put(i, items.get(i) + increment);
                 }
             }

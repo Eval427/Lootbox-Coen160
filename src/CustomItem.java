@@ -5,9 +5,10 @@ import java.io.Serializable;
 
 // Stores basic information about every item in a chest
 public class CustomItem implements Serializable {
-    private int chance, increment;
-    private String name, icon, rewardDisplay;
-    private Color color;
+    private final int chance;
+    private final int increment;
+    private final String name, icon, rewardDisplay;
+    private final Color color;
 
     public CustomItem(String name, int chance, int increment, String icon, String rewardDisplay, Color color) {
         this.name = name;

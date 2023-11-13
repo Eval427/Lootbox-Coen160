@@ -12,7 +12,7 @@ public class Main {
             }
         }
         start.hideWindow();
-        GameWindow game = new GameWindow(start.getPlayer());
+        GameWindow game = new GameWindow(start.getPlayer(), true);
         game.showWindow();
     }
 }
