@@ -273,11 +273,10 @@ public class GameWindow extends JFrame implements ActionListener {
         // // Upgrade 10: Upgrade  Chest
         cost = new HashMap<>();
         cost.put("%", 2);
-        upgrades[9] = new Upgrade("Chaos Upgrade", cost) {
+        upgrades[9] = new Upgrade("UI Upgrade", cost) {
             @Override
             public void upgradeAction() {
-            	ImageIcon newIcon = new ImageIcon("./src/chaoschest.png");
-            	chestButtons[4].setIcon(newIcon);
+            	chestPanel.setBackground(Color.black);
             	openLore.setText("Looks like you'll need Golden Shards ($)");
             }
         };
@@ -294,17 +293,14 @@ public class GameWindow extends JFrame implements ActionListener {
             }
         };
         
-        // Downgrade 1: Shrink Chest Buttons (Not working 100% yet)
+        // Downgrade 1: Remove image for Wooden Chest
         cost = new HashMap<>();
         cost.put("%", 2);
         cost.put("$", 2);
         upgrades[11] = new Upgrade("Upgrade?", cost) {
             @Override
             public void upgradeAction() {
-            	for(int i=0; i<5; i++) {
-            		chestButtons[i].setPreferredSize(new Dimension(50, 25));
-            		chestButtons[i].setSize(new Dimension(50, 25));
-            	}
+            	chestButtons[0].setIcon(null);
             	openLore.setText("That doesn't seem to be an upgrade...");
             	
             }
@@ -326,12 +322,13 @@ public class GameWindow extends JFrame implements ActionListener {
         cost = new HashMap<>();
         cost.put("%", 2);
         cost.put("$", 2);
-        upgrades[13] = new Upgrade("Font Changer", cost) {
+        upgrades[13] = new Upgrade("Font Change", cost) {
             @Override
             public void upgradeAction() {
             	Font newFont = new Font("Comic Sans MS", Font.PLAIN, 14);
             	for(int i=0; i<10; i++)
-            		itemTrackers[i].setFont(newFont);
+            		if(itemTrackers[i] != null)
+            			itemTrackers[i].setFont(newFont);
             	openLore.setText("Not so bad honestly...");
             }
         };
@@ -352,21 +349,78 @@ public class GameWindow extends JFrame implements ActionListener {
             	openLore.setText("These colors hurt my eyes.");
             }
         };
-
-        // TODO: Some more downgrade ideas
-        // Add troll face in place of Chest ASCII
-        // Play iPhone alarm sound instead of music
-        // Move some buttons around randomly
-        // Crash the game.
         
-        upgradeButton.setText(upgrades[0].getUpgradeString());
+        // Downgrade 5: Replace Chest Image
+        cost = new HashMap<>();
+        cost.put("%", 2);
+        cost.put("$", 2);
+        upgrades[15] = new Upgrade("Chest Image", cost) {
+            @Override
+            public void upgradeAction() {
+            	ImageIcon newIcon = new ImageIcon("./src/404.jpg");
+            	for (JLabel label : chestDisplay)
+            		label.setIcon(newIcon);
+            	openLore.setText("What's happening?");
+            }
+        };
+        
+        // Downgrade 6: Change Reward Font
+        cost = new HashMap<>();
+        cost.put("%", 2);
+        cost.put("$", 2);
+        upgrades[16] = new Upgrade("Reward Font", cost) {
+            @Override
+            public void upgradeAction() {
+            	for(JLabel label : rewardTrackers)
+            		label.setFont(new Font("Jokerman", Font.BOLD, 20));
+            	openLore.setText("The Joker has arrived.");
+            }
+        };
+        
+        // Downgrade 7: Delete Save Button
+        cost = new HashMap<>();
+        cost.put("%", 2);
+        cost.put("$", 2);
+        upgrades[17] = new Upgrade("Point of No Return", cost) {
+            @Override
+            public void upgradeAction() {
+            	saveButton.setVisible(false);
+            	openLore.setText("At death's door...");
+            }
+        };
+        
+        // Downgrade 8: Delete Chest Buttons
+        cost = new HashMap<>();
+        cost.put("%", 2);
+        upgrades[18] = new Upgrade("Chests no more", cost) {
+            @Override
+            public void upgradeAction() {
+            	chestButtons[0].setVisible(false);
+            	chestButtons[1].setVisible(false);
+            	chestButtons[3].setVisible(false);
+            	chestButtons[4].setVisible(false);
+            	openButton.setText("No more chests.");
+            	openLore.setText("You have reached Valhalla. You... win?");
+            }
+        };
+        
+        // Endgame
+        cost = new HashMap<>();
+        upgrades[19] = new Upgrade("Nothing left.", cost) {
+            @Override
+            public void upgradeAction() {
+            }
+        };
 
         // Do upgrades from save data
         if (player.upgradeNumber() > 0) {
             for (int i=0; i < player.upgradeNumber(); i++) {
                 upgrades[i].upgradeAction();
             }
+            upgradeIndex = player.upgradeNumber();
         }
+        
+        upgradeButton.setText(upgrades[upgradeIndex].getUpgradeString());
     }
 
     /**
