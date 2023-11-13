@@ -333,6 +333,7 @@ public class GameWindow extends JFrame implements ActionListener {
             @Override
             public void upgradeAction() {
             	chestButtons[0].setIcon(null);
+                chestButtons[0].setText(chests.getButtonStrings()[0]);
             	openLore.setText("That doesn't seem to be an upgrade...");
             	
             }
