@@ -1,6 +1,8 @@
 // package Project;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.Objects;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.AudioInputStream;
@@ -34,10 +36,14 @@ public class GameWindow extends JFrame implements ActionListener {
 
     // List of items on top
 
-    public GameWindow() {
+    public GameWindow(PlayerStats oldPlayer) {
         super("Lootbox Simulator");
         // Initialize the player
-        player = new PlayerStats();
+        if (oldPlayer == null) {
+            player = new PlayerStats();
+        } else {
+            player = oldPlayer;
+        }
 
         // Initialize the chests. ALL CHESTS SHOULD BE CREATED HERE. Any new chests are automatically added to the game
         // Note that the order of insertion will determine the button layout
@@ -91,12 +97,18 @@ public class GameWindow extends JFrame implements ActionListener {
         int itemIndex = 0;
         for (CustomItem item : chests.getAllItems()) {
             if (item != null) {
-                itemTrackers[itemIndex] = new JLabel(String.format("<html><font size='5'>%s %s: %d</font></html>", item.getIcon(), item.getName(), player.amountOf(item)));
-                itemPanel.add(new JLabel("<html><font size = '5'><b>|</b></font></html>"));
+                itemTrackers[itemIndex] = new JLabel(String.format("<html><font size='4'>%s %s: %d</font></html>", item.getIcon(), item.getName(), player.amountOf(item)));
+                itemPanel.add(new JLabel("<html><font size = '4'><b>|</b></font></html>"));
                 itemPanel.add(itemTrackers[itemIndex++]);
             }
         }
-        itemPanel.add(new JLabel("<html><font size = '5'><b>|</b></font></html>"));
+        itemPanel.add(new JLabel("<html><font size = '4'><b>|</b></font></html>"));
+
+        //Save button
+        JButton saveButton = new JButton("Save");
+        saveButton.addActionListener(this);
+        itemPanel.add(saveButton);
+
         container.add(itemPanel, BorderLayout.NORTH);
 
         // Initialize chest UI
@@ -348,6 +360,13 @@ public class GameWindow extends JFrame implements ActionListener {
         // Crash the game.
         
         upgradeButton.setText(upgrades[0].getUpgradeString());
+
+        // Do upgrades from save data
+        if (player.upgradeNumber() > 0) {
+            for (int i=0; i < player.upgradeNumber(); i++) {
+                upgrades[i].upgradeAction();
+            }
+        }
     }
 
     /**
@@ -382,7 +401,7 @@ public class GameWindow extends JFrame implements ActionListener {
         if (toUpdate == null) {
             System.out.println("IGNORING updateItemAmount() call. Invalid item " + item);
         } else {
-            toUpdate.setText(String.format("<html><font size='5'>%s %s: <i>%d</i></font></html>", item.getIcon(), item.getName(), player.amountOf(item)));
+            toUpdate.setText(String.format("<html><font size='4'>%s %s: <i>%d</i></font></html>", item.getIcon(), item.getName(), player.amountOf(item)));
         }
     }
 
@@ -407,6 +426,21 @@ public class GameWindow extends JFrame implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        // On save
+        if (e.getActionCommand() == "Save") {
+            try {
+                FileOutputStream fileOut = new FileOutputStream("./src/savedata.txt");
+                ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
+
+                objectOut.writeObject(player);
+                openLore.setText("Game progress saved!");
+                openLore.setForeground(Color.green);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            return;
+        }
+
         // Clear reward text
         for (JLabel label : rewardTrackers) {
             label.setText("");
@@ -424,6 +458,8 @@ public class GameWindow extends JFrame implements ActionListener {
                 if (canAffordUpgrade(upgrades[upgradeIndex])) { // Ensure user can afford upgrade
                     for (String i : upgrades[upgradeIndex].getCost().keySet()) { // Decrement player items
                         player.updateAmount(chests.getItemByIcon(i).getName(), upgrades[upgradeIndex].getCost().get(i)*-1);
+                        updateItemDisplay(chests.getItemByIcon(i));
+                        player.incrementUpgradeCounter();
                     }
                     // Enact the upgrade
                     upgrades[upgradeIndex++].upgradeAction();
@@ -453,7 +489,11 @@ public class GameWindow extends JFrame implements ActionListener {
             return;
         }
 
-        if (chests.getCost(toOpen) > player.amountOf("Coins")) return;
+        if (chests.getCost(toOpen) > player.amountOf("Coins")) {
+            openLore.setText(String.format("You can't afford a %s Chest!", toOpen));
+            openLore.setForeground(Color.red);
+            return;
+        }
 
         // Generate rewards
         CustomItem[] rewards = chests.openChest(toOpen);
@@ -551,7 +591,7 @@ public class GameWindow extends JFrame implements ActionListener {
     public static void main(String[] args) {
         // 1. initialize chests
         // 2. create game window
-        GameWindow game = new GameWindow();
+        GameWindow game = new GameWindow(null);
         game.showWindow();
     }
 }

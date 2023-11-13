@@ -1,9 +1,10 @@
 // package Project;
 
 import java.awt.*;
+import java.io.Serializable;
 
 // Stores basic information about every item in a chest
-public class CustomItem {
+public class CustomItem implements Serializable {
     private int chance, increment;
     private String name, icon, rewardDisplay;
     private Color color;

@@ -6,12 +6,15 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 
 public class StartWindow extends JFrame implements ActionListener {
 	//Class Declarations
 	JButton startButton, loadButton;
 	boolean gameStart = false;
+	PlayerStats player = null;
 	
 	//Constructor
 	public StartWindow() {
@@ -55,7 +58,15 @@ public class StartWindow extends JFrame implements ActionListener {
 		}
 		
 		if (e.getSource() == loadButton) {
-			System.out.println("load pressed");
+			try {
+				FileInputStream fileIn = new FileInputStream("./src/savedata.txt");
+				ObjectInputStream objectIn = new ObjectInputStream(fileIn);
+
+				player = (PlayerStats) objectIn.readObject();
+				gameStart = true;
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
 		}
 	}
 
@@ -79,6 +90,10 @@ public class StartWindow extends JFrame implements ActionListener {
 	 */
 	public boolean isGameStart() {
 		return gameStart;
+	}
+
+	public PlayerStats getPlayer() {
+		return this.player;
 	}
 
 	//Main Program that starts Execution

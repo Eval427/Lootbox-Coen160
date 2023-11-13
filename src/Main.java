@@ -3,7 +3,6 @@
 public class Main {
     public static void main(String[] args) {
         StartWindow start = new StartWindow();
-        GameWindow game = new GameWindow();
         GameWindow.startBackgroundMusic("./src/epicbkmusic.wav");
         start.showWindow();
         while (!start.isGameStart()) {
@@ -13,6 +12,7 @@ public class Main {
             }
         }
         start.hideWindow();
+        GameWindow game = new GameWindow(start.getPlayer());
         game.showWindow();
     }
 }

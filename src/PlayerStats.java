@@ -1,16 +1,19 @@
 // package Project;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class PlayerStats {
+public class PlayerStats implements Serializable {
     private Map<CustomItem, Integer> items;
+    private int numUpgrades;
 
     /**
      * Object to store a given player's item amounts
      */
     public PlayerStats() {
         items = new HashMap<>();
+        numUpgrades = 0;
     }
 
     /**
@@ -63,5 +66,20 @@ public class PlayerStats {
         for (CustomItem i : newItems) {
             items.put(i, 0);
         }
+    }
+
+    /**
+     * Used for recounting number of player upgrades gotten in game. Important for save data
+     */
+    public void incrementUpgradeCounter() {
+        this.numUpgrades++;
+    }
+
+    /**
+     * Returns number of upgrades gotten in a save
+     * @return integer of upgrade number
+     */
+    public int upgradeNumber() {
+        return this.numUpgrades;
     }
 }
