@@ -1,3 +1,5 @@
+// package Project;
+
 import java.awt.*;
 
 // Stores basic information about every item in a chest

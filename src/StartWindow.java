@@ -20,7 +20,7 @@ public class StartWindow extends JFrame implements ActionListener {
 		setLocationRelativeTo(null);
 		
 		try {
-            BufferedImage backgroundImage = ImageIO.read(new File("./src/startwindowbk.png"));
+            BufferedImage backgroundImage = ImageIO.read(new File("./src/startwindow2.png"));
             setContentPane(new ImagePanel(backgroundImage));
         } catch (IOException e) {
             e.printStackTrace();

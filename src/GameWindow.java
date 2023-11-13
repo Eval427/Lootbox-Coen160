@@ -1,6 +1,17 @@
+// package Project;
+
+import java.io.IOException;
+import java.util.Objects;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineEvent;
+import javax.sound.sampled.LineListener;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -19,6 +30,7 @@ public class GameWindow extends JFrame implements ActionListener {
     private final JButton upgradeButton;
     private final Upgrade[] upgrades;
     private int upgradeIndex;
+    private static Clip backgroundMusic;
 
     // List of items on top
 
@@ -109,6 +121,7 @@ public class GameWindow extends JFrame implements ActionListener {
         rewardTrackers = new JLabel[7]; // Labels to display rewards
         for (int i=0; i < rewardTrackers.length; i++) {
             rewardTrackers[i] = new JLabel("", SwingConstants.CENTER);
+            rewardTrackers[i].setFont(new Font("Courier", Font.PLAIN, 15));
             rewardDisplay.add(rewardTrackers[i]);
         }
         chestPanel.add(chestImage);
@@ -137,27 +150,203 @@ public class GameWindow extends JFrame implements ActionListener {
         // Initialize upgrades
         upgrades = new Upgrade[20];
         upgradeIndex = 0;
-
+        
         // Upgrade 1: Background color
         HashMap<String, Integer> cost = new HashMap<>();
         cost.put("@", 100);
-        upgrades[0] = new Upgrade("Background", cost) {
+        upgrades[0] = new Upgrade("Upgrade?!", cost) {
             @Override
             public void upgradeAction() {
-                chestSelection.setBackground(Color.blue);
+                chestSelection.setBackground(Color.darkGray);
+                openLore.setText("Huh? What just happened?");
             }
         };
 
+        // Upgrade 2: Dark Mode
         cost = new HashMap<>();
-        cost.put("%", 1);
-        upgrades[1] = new Upgrade("Add me!", cost) {
+        cost.put("@", 100);
+        upgrades[1] = new Upgrade("Dark Mode", cost) {
             @Override
             public void upgradeAction() {
-                System.out.println("I don't do anything yet...");
+            	openLore.setForeground(Color.white);
+            	openLore.setBackground(Color.black);
+            	openLore.setOpaque(true);
+            	openLore.setText("Lookin' classy B-)");
             }
         };
-        // Add more upgrades here...
+        
+        // Upgrade 3: Change Font
+        cost = new HashMap<>();
+        cost.put("@", 100);
+        upgrades[2] = new Upgrade("Change Font", cost) {
+            @Override
+            public void upgradeAction() {
+            	Font newFont = new Font("Helvetica", Font.BOLD, 14); // You can adjust the font name, style, and size
+            	openLore.setFont(newFont);
+            	openLore.setText("That's a neat font!");
+            }
+        };
+        
+        // Upgrade 4: Background color
+        cost = new HashMap<>();
+        cost.put("@", 100);
+        upgrades[3] = new Upgrade("Change Background", cost) {
+            @Override
+            public void upgradeAction() {
+            	rewardDisplay.setBackground(Color.lightGray);
+            	openLore.setText("Looks like you'll need Weird Shards (%) for this next upgrade");
+            }
+        };
+        
+        // Upgrade 5: Upgrade Wooden Chest
+        cost = new HashMap<>();
+        cost.put("%", 2);
+        upgrades[4] = new Upgrade("Wooden Upgrade", cost) {
+            @Override
+            public void upgradeAction() {
+            	ImageIcon newIcon = new ImageIcon("./src/woodenchest.png");
+            	chestButtons[0].setIcon(newIcon);
+            	openLore.setText("So dramatic for a plain wooden chest...");
+            }
+        };
+        
+        // Upgrade 6: Upgrade Golden Chest
+        cost = new HashMap<>();
+        cost.put("%", 2);
+        upgrades[5] = new Upgrade("Golden Upgrade", cost) {
+            @Override
+            public void upgradeAction() {
+            	ImageIcon newIcon = new ImageIcon("./src/goldenchest.png");
+            	chestButtons[1].setIcon(newIcon);
+            	openLore.setText("Now that's a bit better!");
+            }
+        };
+        
+        // Upgrade 7: Upgrade Diamond Chest
+        cost = new HashMap<>();
+        cost.put("%", 2);
+        upgrades[6] = new Upgrade("Diamond Upgrade", cost) {
+            @Override
+            public void upgradeAction() {
+            	ImageIcon newIcon = new ImageIcon("./src/diamondchest.png");
+            	chestButtons[2].setIcon(newIcon);
+            	openLore.setText("Diamonds... Shiny!");
+            }
+        };
+        
+        // Upgrade 8: Upgrade Emerald Chest
+        cost = new HashMap<>();
+        cost.put("%", 2);
+        upgrades[7] = new Upgrade("Emerald Upgrade", cost) {
+            @Override
+            public void upgradeAction() {
+            	ImageIcon newIcon = new ImageIcon("./src/emeraldchest.png");
+            	chestButtons[3].setIcon(newIcon);
+            	openLore.setText("Follow the Yellow Brick Road!");
+            }
+        };
+        
+        // Upgrade 9: Upgrade Chaos Chest
+        cost = new HashMap<>();
+        cost.put("%", 2);
+        upgrades[8] = new Upgrade("Chaos Upgrade", cost) {
+            @Override
+            public void upgradeAction() {
+            	ImageIcon newIcon = new ImageIcon("./src/chaoschest.png");
+            	chestButtons[4].setIcon(newIcon);
+            	openLore.setText("Chaos! Chaos! Chaos!");
+            }
+        };
+        
+        // // Upgrade 10: Upgrade  Chest
+        cost = new HashMap<>();
+        cost.put("%", 2);
+        upgrades[9] = new Upgrade("Chaos Upgrade", cost) {
+            @Override
+            public void upgradeAction() {
+            	ImageIcon newIcon = new ImageIcon("./src/chaoschest.png");
+            	chestButtons[4].setIcon(newIcon);
+            	openLore.setText("Looks like you'll need Golden Shards ($)");
+            }
+        };
+        
+        // Upgrade 11: Change Music
+        cost = new HashMap<>();
+        cost.put("%", 2);
+        cost.put("$", 2);
+        upgrades[10] = new Upgrade("Change Music", cost) {
+            @Override
+            public void upgradeAction() {
+            	changeBackgroundMusic("./src/dreamsbkmusic.wav");
+            	openLore.setText("The atmosphere is changing...");
+            }
+        };
+        
+        // Downgrade 1: Shrink Chest Buttons (Not working 100% yet)
+        cost = new HashMap<>();
+        cost.put("%", 2);
+        cost.put("$", 2);
+        upgrades[11] = new Upgrade("Upgrade?", cost) {
+            @Override
+            public void upgradeAction() {
+            	for(int i=0; i<5; i++) {
+            		chestButtons[i].setPreferredSize(new Dimension(50, 25));
+            		chestButtons[i].setSize(new Dimension(50, 25));
+            	}
+            	openLore.setText("That doesn't seem to be an upgrade...");
+            	
+            }
+        };
+        
+        // Downgrade 2: Remove Diamond Chest
+        cost = new HashMap<>();
+        cost.put("%", 2);
+        cost.put("$", 2);
+        upgrades[12] = new Upgrade("Remove chest", cost) {
+            @Override
+            public void upgradeAction() {
+            	chestButtons[2].setVisible(false);
+            	openLore.setText("What happened to the Diamond Chest?!");
+            }
+        };
+        
+        // Downgrade 3: Change to Comic Sans
+        cost = new HashMap<>();
+        cost.put("%", 2);
+        cost.put("$", 2);
+        upgrades[13] = new Upgrade("Font Changer", cost) {
+            @Override
+            public void upgradeAction() {
+            	Font newFont = new Font("Comic Sans MS", Font.PLAIN, 14);
+            	for(int i=0; i<10; i++)
+            		itemTrackers[i].setFont(newFont);
+            	openLore.setText("Not so bad honestly...");
+            }
+        };
+        
+        // Downgrade 4: Neon Colors
+        cost = new HashMap<>();
+        cost.put("%", 2);
+        cost.put("$", 2);
+        upgrades[14] = new Upgrade("Neon Colors", cost) {
+            @Override
+            public void upgradeAction() {
+            	Color neonGreen = new Color(100, 255, 0);
+            	Color neonBlue = new Color(0, 255, 255);
+            	Color neonPink = new Color(255, 0, 255);
+            	chestSelection.setBackground(neonGreen);
+            	openLore.setBackground(neonBlue);
+            	rewardDisplay.setBackground(neonPink);
+            	openLore.setText("These colors hurt my eyes.");
+            }
+        };
 
+        // TODO: Some more downgrade ideas
+        // Add troll face in place of Chest ASCII
+        // Play iPhone alarm sound instead of music
+        // Move some buttons around randomly
+        // Crash the game.
+        
         upgradeButton.setText(upgrades[0].getUpgradeString());
     }
 
@@ -239,8 +428,6 @@ public class GameWindow extends JFrame implements ActionListener {
                     // Enact the upgrade
                     upgrades[upgradeIndex++].upgradeAction();
                     upgradeButton.setText(upgrades[upgradeIndex].getUpgradeString());
-                    openLore.setText("Huh, now that looks weird...");
-                    openLore.setForeground(Color.blue);
                 } else { // Display player is too poor
                     openLore.setText("You can't afford that upgrade yet!");
                     openLore.setForeground(Color.red);
@@ -259,7 +446,8 @@ public class GameWindow extends JFrame implements ActionListener {
                 openLore.setForeground(Color.red);
                 openLore.setText(String.format("You can't afford a %s Chest!", toOpen));
             } else {
-                openLore.setForeground(Color.black);
+            	if(upgradeIndex < 2) openLore.setForeground(Color.black);
+            	else openLore.setForeground(Color.white);
                 openLore.setText(String.format("Taking a chance on a %s Chest?", toOpen));
             }
             return;
@@ -288,8 +476,76 @@ public class GameWindow extends JFrame implements ActionListener {
             rewardTrackers[startIndex++].setForeground(reward.getColor());
         }
 
-        // Update lore
-        openLore.setText("That's pretty good... I think!");
+        // Phrases for lore
+        String[] phrases = {
+        		"That's pretty good... I think!",
+        		"Fortune favors the brave.",
+        		"Lucky day to be you!",
+        		"Glory awaits!",
+        		"You're soon gonna be as rich as Bezos!",
+        		"Swimming in cash (and shards)",
+        		"A bounty of riches!",
+        		"What secrets lie within?",
+        		"Share your finds on Facebook!",
+        		"Do you feel like Indiana Jones yet?",
+        		"Treasure behold! ARRRR",
+        		"Acquired the goods.",
+        		"Soon to rival the wealth of empires!",
+        		"It's like cookies, but coins...",
+        };
+        
+        // Update lore with random phrase
+        Random random = new Random();
+        String phrase = phrases[random.nextInt(phrases.length)];
+        openLore.setText(phrase);
+    }
+    
+    /*
+     * 	Start background music with file
+     */
+    static void startBackgroundMusic(String fileName) {
+        try {
+        	File audioFile = new File(fileName);
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(audioFile);
+            backgroundMusic = AudioSystem.getClip();
+            backgroundMusic.open(audioInputStream);
+            
+            // Listener for playback
+            backgroundMusic.addLineListener(new LineListener() {
+		    @Override
+		    public void update(LineEvent event) {
+		    	if (event.getType() == LineEvent.Type.STOP) {
+		    		// Loop when music stops running
+		            if (!backgroundMusic.isRunning()) {
+		            	backgroundMusic.setFramePosition(0);
+		                backgroundMusic.start();
+		            }
+		    	}
+		      }
+            });
+            
+            backgroundMusic.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /*
+     *  Stops background music
+     */
+    private static void stopBackgroundMusic() {
+        if (backgroundMusic != null && backgroundMusic.isRunning()) {
+            backgroundMusic.stop();
+            backgroundMusic.close();
+        }
+    }
+
+    /*
+     *  Changes background music (stop and start new)
+     */
+    private static void changeBackgroundMusic(String newFileName) {
+        stopBackgroundMusic();
+        startBackgroundMusic(newFileName);
     }
 
     public static void main(String[] args) {
